@@ -1,40 +1,20 @@
+
+
 import express from "express";
 import dotenv from "dotenv";
-import cookieParser from "cookie-parser";
-import path from "node:path"
-import { fileURLToPath } from 'node:url';
-import bodyParser from "body-parser";
-
 
 import dbConnection from "./config/dbConnection.js";
 import globalError from "./middleware/error.middleware.js";
 import ApiError from "./lib/ApiError.js";
-
-import BrandRouter from "./routes/brand.route.js";
-import ProductRouter from "./routes/product.route.js";
-import UserRoute from "./routes/user.route.js"
-import authRouter from "./routes/auth.route.js"
-import reviewRouter from "./routes/review.route.js"
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import {appRouter} from "./routes/index.js";
+import {appConfig} from "./config/appConfig.js";
 
 dotenv.config({ path: "config.env" });
 
 const app = express();
 
-// Configuration app
-app.use(express.json());
-app.use(express.urlencoded({extended : true}));
-app.use(express.static(path.join(__dirname , "/uploads")))
-app.use(cookieParser());
-
-// Mount Routes
-app.use("/app/v1/brands", BrandRouter);
-app.use("/app/v1/products", ProductRouter);
-app.use("/app/v1/users" , UserRoute)
-app.use("/app/v1/auth" , authRouter)
-app.use("/app/v1/reviews" , reviewRouter)
+appConfig(app)
+appRouter(app)
 
 // globalError
 app.all("*", (req, res, next) => {
@@ -51,8 +31,10 @@ process.on("unhandledRejection", (err) => {
   });
 });
 
-const Port = process.env.PORT || 3066;
-app.listen(Port, (req, res) => {
-  console.log(`app listening on Port : ${Port}`);
-  dbConnection();
-});
+dbConnection().then(()=>{
+  const Port = process.env.PORT || 3066;
+  app.listen(Port, (req, res) => {
+    console.log(`app listening on Port : ${Port}`);
+  });
+})
+

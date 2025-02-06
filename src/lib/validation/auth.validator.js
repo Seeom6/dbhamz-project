@@ -48,8 +48,8 @@ export const signupValidator = [
   check("phone")
     .notEmpty()
     .withMessage("phone number is required")
-    .isMobilePhone(["ar-SA", "ar-AE", "ar-OM", "ar-KW", "ar-IQ"])
-    .withMessage("phone number is not correct")
+    // .isMobilePhone(["ar-SA", "ar-AE", "ar-OM", "ar-KW", "ar-IQ"])
+    // .withMessage("phone number is not correct")
     .custom(async (value) => {
       const user = await User.findOne({ phone: value });
 
@@ -72,7 +72,7 @@ export const loginValidator = [
   check("phone")
     .notEmpty()
     .withMessage("Phone number is required")
-    .isMobilePhone(["ar-SA", "ar-AE", "ar-OM", "ar-KW", "ar-IQ"])
+    // .isMobilePhone(["ar-SA", "ar-AE", "ar-OM", "ar-KW", "ar-IQ"])
     .withMessage("phone number is not correct"),
 
   validator,

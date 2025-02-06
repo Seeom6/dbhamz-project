@@ -2,10 +2,16 @@ import express from "express";
 
 import { protect, allowedTo } from "../controllers/auth.controller.js";
 import { createReview, deleteOneReview, getOneReview, getReviews, updateReview } from "../controllers/review.controller.js";
+import {
+  createBrandValidator,
+  deleteBrandValidator,
+  getOneBrandValidator,
+  updateBrandValidator
+} from "../lib/validation/brand.validator.js";
 
 const Router = express.Router();
 
-Router.use("/:brandId/products", productRouter);
+// Router.use("/:brandId/products", productRouter);
 
 Router.route("/")
   .post(
