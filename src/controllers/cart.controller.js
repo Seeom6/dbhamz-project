@@ -2,10 +2,12 @@
 import asyncHandler from "express-async-handler";
 import CartService  from "../service/cart.service.js"
 import {CartModel} from "../models/cart.model.js";
+import Coupon from "../models/coupon.model.js";
+import ApiError from "../lib/ApiError.js";
 
 
 export const addProductToCart = asyncHandler(async (req, res)=>{
-  await CartService.addProductToCart(req.body,req.user)
+  const cart = await CartService.addProductToCart(req.body,req.user)
   res.status(200).json({ numberOfItem: cart.cartItems.length, data: cart })
 
 })
@@ -28,4 +30,9 @@ export const clearCart = asyncHandler( async (req, res)=>{
 export const updateItemQuantity = asyncHandler( async (req, res)=>{
   const cart = await CartService.updateItemQuantity(req.body, req.params.id, req.user._id)
   res.status(200).json({ numberOfItem: cart.cartItems.length, data: cart })
+})
+
+export const applyCouponToCart = asyncHandler(async ( req ,res)=>{
+  const cart = await CartService.applyCoupon(req.body.coupon , req.user._id )
+  res.status(200).json({cart})
 })

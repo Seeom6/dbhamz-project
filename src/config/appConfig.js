@@ -1,16 +1,22 @@
 import express from "express";
 import path from "node:path";
 import cookieParser from "cookie-parser";
-import {fileURLToPath} from "node:url";
-import morgan from "morgan";
 
+import morgan from "morgan";
+import cors from "cors"
+
+const corsOption = {
+    origin: 'http://localhost:5173', // Allow only this origin
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    credentials: true, // Allow cookies and credentials
+  }
 
 export const appConfig = (app)=>{
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
+
     app.use(express.json());
     app.use(express.urlencoded({extended : true}));
-    app.use(express.static(path.join(__dirname , "/uploads")))
     app.use(cookieParser());
     app.use(morgan("dev"));
+    app.use("*",cors(corsOption));
 }

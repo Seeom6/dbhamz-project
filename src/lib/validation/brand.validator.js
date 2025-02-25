@@ -11,10 +11,16 @@ export const createBrandValidator = [
     .withMessage("Too short brand name")
     .isLength({ max: 50 })
     .withMessage("Too long brand name")
-    .custom((val, { req }) => {
+    .custom(async(val, { req }) => {
+      const brand = await Brand.findOne({name: val})
+      if(brand) throw new Error("Name of brand must be unique")
       if (val) req.body.slug = slugify(val);
       return true;
     }),
+    check("image")
+    .notEmpty()
+    .withMessage("image of Brand is required"),
+
   validator,
 ];
 

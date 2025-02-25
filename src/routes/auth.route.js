@@ -7,7 +7,7 @@ import {
 
 const Router = express.Router();
 
-Router.route("/register").post(signupValidator, signup);
+Router.route("/signup").post(signupValidator, signup);
 Router.route("/login").post(loginValidator, login);
 
 export default Router;

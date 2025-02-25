@@ -15,14 +15,14 @@ const userSchema = new mongoose.Schema({
     minlength: 3,
     maxlength: 30,
   },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple null values but enforces uniqueness for non-null values
+  },
   slug: {
     type: String,
     lowercase: true,
-  },
-  email: {
-    type: String,
-    default: "",
-    unique: true,
   },
   phone: {
     type: String,

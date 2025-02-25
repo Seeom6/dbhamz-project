@@ -6,6 +6,7 @@ import authRouter from "./auth.route.js"
 import reviewRouter from "./review.route.js"
 import wishListRouter from "./wishList.route.js"
 import CartRouter from "./cart.router.js";
+import CouponRouter from "./coupon.route.js";
 
 export const appRouter = (app)=>{
     app.use("/app/v1/brands", BrandRouter);
@@ -15,4 +16,5 @@ export const appRouter = (app)=>{
     app.use("/app/v1/reviews" , reviewRouter)
     app.use("/app/v1/wish-list", wishListRouter)
     app.use("/app/v1/cart", CartRouter)
+    app.use("/app/v1/coupon", CouponRouter)
 }

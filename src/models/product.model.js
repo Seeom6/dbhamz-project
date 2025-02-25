@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
-    title: {
+    name: {
       type: String,
       required: true,
       trim: true,
@@ -72,16 +72,17 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
 const setImageUrl = (doc) => {
   if (doc.imageCover) {
-    const imageUrl = `${process.env.BASE_URL}/product/${doc.imageCover}`;
+    const imageUrl = `${process.env.BASE_URL}/products/${doc.imageCover}`;
     doc.imageCover = imageUrl;
   }
 
   if (doc.images) {
     const imagesList = [];
     doc.images.forEach((elm) => {
-      const imageUrl = `${process.env.BASE_URL}/product/${elm}`;
+      const imageUrl = `${process.env.BASE_URL}/products/${elm}`;
       imagesList.push(imageUrl);
     });
 
@@ -96,6 +97,13 @@ productSchema.post("save", (doc) => {
   setImageUrl(doc);
 });
 
+productSchema.pre(/^find/ , function (next){
+  this.populate({
+    path: "brand",
+    select:"name"
+  })
+  next()
+})
 const Product = mongoose.model("Product", productSchema);
 
 export default Product;

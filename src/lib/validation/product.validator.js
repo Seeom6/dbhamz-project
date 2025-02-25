@@ -6,7 +6,7 @@ import ApiError from "../ApiError.js";
 import Product from "../../models/product.model.js";
 
 export const createProductValidator = [
-  check("title")
+  check("name")
     .isLength({ min: 3 })
     .withMessage("product title must be at least 3 chars")
     .isLength({ max: 100 })
@@ -80,7 +80,7 @@ export const createProductValidator = [
 
   check("brand")
     .isMongoId()
-    .withMessage("Invalid category")
+    .withMessage("Invalid Brand")
     .notEmpty()
     .withMessage("Product must belong to a brand")
     .custom(async (val) => {
@@ -140,7 +140,7 @@ export const updateProductValidator = [
       return true;
     }),
 
-  check("title")
+  check("name")
     .optional()
     .isLength({ min: 3 })
     .withMessage("product title must be at least 3 chars")
@@ -174,6 +174,7 @@ export const updateProductValidator = [
         throw new ApiError("sold product quantity must positive number", 400);
       return true;
     }),
+  check("imageCover").optional(),
 
   check("price")
     .optional()
@@ -227,7 +228,7 @@ export const updateProductValidator = [
 
   check("brand")
     .isMongoId()
-    .withMessage("Invalid category")
+    .withMessage("Invalid Brand")
     .optional()
     .custom(async (val) => {
       const brand = await Brand.findById(val);
@@ -251,13 +252,9 @@ export const updateProductValidator = [
     .optional()
     .isNumeric()
     .withMessage("packageSize must me number")
-    .custom(async (val, { req }) => {
-      if (val === 25 || val === 50 || val === 100) {
-        return true;
-      } else {
-        throw new ApiError("Case size must be 25 or 50 or 100");
-      }
-    }),
+    .isArray()
+    .withMessage("package size must be an Array")
+,
 
   validator,
 ];
