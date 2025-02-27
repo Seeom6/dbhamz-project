@@ -1,5 +1,5 @@
 import ProductModel from "../models/product.model.js";
-import { CartModel } from "../models/cart.model.js";
+import {CartModel} from "../models/cart.model.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../lib/ApiError.js";
 import {CouponModel} from "../models/coupon.model.js";
@@ -40,7 +40,7 @@ const addProductToCart = asyncHandler(async (productInfo, user) => {
       (item) => item.product.toString() === productInfo.productId
     );
     if (productIndex >= 0) {
-      cart.cartItems[productIndex].quantity += 1;
+      cart.cartItems[productIndex].quantity += productInfo.quantity;
     } else {
       cart.cartItems.push({ product: product._id, price: product.price });
     }
@@ -61,7 +61,7 @@ const getProductInCart = async (userId) => {
 export const removeItemFromTheCart = async (productId, userId) => {
   let cart = await CartModel.findOneAndUpdate(
     { user: userId },
-    { $pull: { cartItems: { _id: productId } } },
+    { $pull: { cartItems: { product: productId } } },
     { new: true }
   );
   cartCalculator(cart);
@@ -75,19 +75,19 @@ export const updateItemQuantity = async (productInfo, productId, userId) => {
     throw new ApiError("this item is not exists in cart");
   }
   const cartItemIndex = cart.cartItems.findIndex(
-    (item) => item._id.toString() === productId
+    (item) => item.product.toString() === productId
   );
   cart.cartItems[cartItemIndex].quantity = productInfo.quantity;
 
-  cartCalculator(cart);
+  await cartCalculator(cart);
   cart = await cart.save();
   return cart;
 };
 
 export const applyCoupon = async (couponData , userId , next)=>{
-  const coupon = await Coupon.findOne({
+  const coupon = await CouponModel.findOne({
     name : couponData,
-    expire : {$gt : Date.now()}
+    expired : {$gt : Date.now()}
   });
   if(!coupon){
     throw new ApiError("هذا الكوبون منتهي الصلاحية, او ليس موجود")
@@ -97,13 +97,12 @@ export const applyCoupon = async (couponData , userId , next)=>{
 
   const totalPrice = cart.totalPrice;
 
-  // 3) Calculate price after priceAfterDiscount
-  const totalPriceAfterDiscount = (
-    totalPrice -
-    (totalPrice * coupon.discount) / 100
-  ).toFixed(2); // 99.23
 
-  cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
+   // 99.23
+  cart.totalPriceAfterDiscount = (
+      totalPrice -
+      (totalPrice * coupon.discount) / 100
+  ).toFixed(2);
   await cart.save();
 
 return cart

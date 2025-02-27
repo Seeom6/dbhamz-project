@@ -2,9 +2,6 @@
 import asyncHandler from "express-async-handler";
 import CartService  from "../service/cart.service.js"
 import {CartModel} from "../models/cart.model.js";
-import Coupon from "../models/coupon.model.js";
-import ApiError from "../lib/ApiError.js";
-
 
 export const addProductToCart = asyncHandler(async (req, res)=>{
   const cart = await CartService.addProductToCart(req.body,req.user)

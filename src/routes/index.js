@@ -16,6 +16,6 @@ export const appRouter = (app)=>{
     app.use("/app/v1/reviews" , reviewRouter)
     app.use("/app/v1/wish-list", wishListRouter)
     app.use("/app/v1/cart", CartRouter)
-    app.use("/api/v1/coupon", CouponRouter);
+    app.use("/app/v1/coupon", CouponRouter);
 
 }
