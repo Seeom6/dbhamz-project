@@ -33,11 +33,6 @@ export const removeItemFromCartValidator = [
 ];
 
 export const updateCartQuantityValidator = [
-    check("id")
-        .notEmpty()
-        .withMessage("name id in param is required")
-        .isMongoId()
-        .withMessage("productId is invalid"),
     check("quantity")
         .notEmpty()
         .withMessage("quantity in body is required")

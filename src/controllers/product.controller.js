@@ -26,12 +26,11 @@ export const resizeProductImage = asyncHandler(async (req, res, next) => {
       .resize(1024, 1024)
       .toFormat("jpeg")
       .jpeg({ quality: 90 })
-      .toFile(`src/uploads/product/${imageCoverFileName}`);
+      .toFile(`src/uploads/products/${imageCoverFileName}`);
 
     req.body.imageCover = imageCoverFileName;
   }
   if (req.files.images) {
-    console.log(req.files);
     req.body.images = [];
     await Promise.all(
       req.files.images.map(async (img, idx) => {
@@ -41,7 +40,7 @@ export const resizeProductImage = asyncHandler(async (req, res, next) => {
           .resize(1024, 1024)
           .toFormat("jpeg")
           .jpeg({ quality: 90 })
-          .toFile(`src/uploads/product/${imageName}`);
+          .toFile(`src/uploads/products/${imageName}`);
 
         req.body.images.push(imageName);
       })

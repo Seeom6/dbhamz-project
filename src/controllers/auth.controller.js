@@ -34,7 +34,6 @@ export const signup = asyncHandler(async (req, res, next) => {
 // # public
 export const login = asyncHandler(async (req, res, next) => {
   let findUserBy = {};
-  if (req.body.email) findUserBy.email = req.body.email;
   if (req.body.phone) findUserBy.phone = req.body.phone;
 
   const user = await User.findOne(findUserBy);

@@ -8,13 +8,18 @@ import globalError from "./middleware/error.middleware.js";
 import ApiError from "./lib/ApiError.js";
 import {appRouter} from "./routes/index.js";
 import {appConfig} from "./config/appConfig.js";
+import {fileURLToPath} from "node:url";
+import path from "node:path";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 dotenv.config({ path: "config.env" });
 
 const app = express();
 
 appConfig(app)
 appRouter(app)
+ app.use(express.static(path.join(__dirname , "/uploads")))
 
 // globalError
 app.all("*", (req, res, next) => {

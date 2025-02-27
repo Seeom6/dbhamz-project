@@ -4,7 +4,8 @@ import {
   getProductInCart,
   removeItemFromTheCart,
   clearCart,
-  updateItemQuantity
+  updateItemQuantity,
+  applyCouponToCart
 } from "../controllers/cart.controller.js";
 import { allowedTo, protect } from "../controllers/auth.controller.js";
 import {
@@ -22,9 +23,11 @@ router.route('/')
   .get(getProductInCart)
   .delete(clearCart)
 
+router.patch("/applyCoupon" , applyCouponToCart)
+
 router.route('/:id')
   .delete(removeItemFromCartValidator, removeItemFromTheCart)
-  .put(updateCartQuantityValidator, updateItemQuantity)
+  .patch(updateCartQuantityValidator, updateItemQuantity)
 
 
 export default router

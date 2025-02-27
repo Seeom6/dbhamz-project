@@ -1,6 +1,6 @@
 import { check } from "express-validator";
 import slugify from "slugify";
-
+import { isValidPhoneNumber } from "libphonenumber-js";
 import validator from "../../middleware/validator.middleware.js";
 import ApiError from "../ApiError.js";
 import User from "../../models/user.model.js";
@@ -46,10 +46,30 @@ export const signupValidator = [
     .withMessage("Password must be at least 6 characters"),
 
   check("phone")
-    .notEmpty()
-    .withMessage("phone number is required")
-    // .isMobilePhone(["ar-SA", "ar-AE", "ar-OM", "ar-KW", "ar-IQ"])
-    // .withMessage("phone number is not correct")
+  .notEmpty()
+  .withMessage("Phone number is required")
+  .custom((value) => {
+    console.log(value)
+    // List of supported country codes
+    const supportedCountries = ["SA", "AE", "OM", "KW", "QA"];
+
+    // Check if the phone number is valid for any of the supported countries
+    const isValid = supportedCountries.some((country) =>
+      isValidPhoneNumber(value, country)
+    );
+
+    if (!isValid) {
+      throw new Error("Phone number is not correct for SA, AE, OM, KW, or QA");
+    }
+    return true;
+  })
+  .custom(async (value) => {
+    const user = await User.findOne({ phone: value });
+    if (user) {
+      throw new Error("Phone number already exists");
+    }
+    return true;
+  })
     .custom(async (value) => {
       const user = await User.findOne({ phone: value });
 
