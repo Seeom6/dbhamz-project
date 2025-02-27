@@ -2,25 +2,26 @@ import ProductModel from "../models/product.model.js";
 import {CartModel} from "../models/cart.model.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../lib/ApiError.js";
+import {CouponModel} from "../models/coupon.model.js";
 
-const cartCalculator = (cart)=>{
+const cartCalculator = async (cart, coupon) => {
     let total = 0;
-    cart.cartItems.forEach((item)=>{
+    cart.cartItems.forEach((item) => {
         const totalPriceForItem = item.price * item.quantity;
-        total += totalPriceForItem ;
+        total += totalPriceForItem;
     })
     cart.totalPrice = total;
-    // if(coupon){
-    //     const coup = await CouponModel.findOne({name: coupon, expaired: {$gt: Date.now()}})
-    //     if(!coup){
-    //         cart.couponStatus = " the coupon is not available or expired "
-    //         return;
-    //     }
-    //     cart.totalPriceAfterDiscount = (total -  total * (coup.discount / 100)).toFixed(2);
-    // }
+    if (coupon) {
+        const coup = await CouponModel.findOne({name: coupon, expaired: {$gt: Date.now()}})
+        if (!coup) {
+            cart.couponStatus = " the coupon is not available or expired "
+            return;
+        }
+        cart.totalPriceAfterDiscount = (total - total * (coup.discount / 100)).toFixed(2);
+    }
 }
 
-const addProductToCart = async (productInfo,user)=>{
+const addProductToCart = async (productInfo, user)=>{
     const product = await ProductModel.findOne({_id: productInfo.productId})
     let cart = await CartModel.findOne({user: user._id})
     if(!cart){

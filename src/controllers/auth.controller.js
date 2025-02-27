@@ -5,11 +5,17 @@ import bcrypt from "bcryptjs";
 import ApiError from "./../lib/ApiError.js";
 import User from "./../models/user.model.js";
 import generateToken from "./../middleware/generateToken.middleware.js";
+import {UserService} from "../service/user.service.js";
 
 // # Signup User
 // # POST   /app/register
 // # public
 export const signup = asyncHandler(async (req, res, next) => {
+
+  const isEmailExist = await UserService.getUserByEmail(req.body.email, false);
+  if(isEmailExist){
+    throw new ApiError("email already exists", 401);
+  }
   const user = await User.create({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
@@ -17,7 +23,7 @@ export const signup = asyncHandler(async (req, res, next) => {
     password: req.body.password,
     slug: req.body.slug,
   });
-
+  delete user.password
   generateToken(res, user._id);
 
   res.status(200).json({ data: user });
@@ -44,7 +50,15 @@ export const login = asyncHandler(async (req, res, next) => {
 
   generateToken(res, user._id);
 
-  res.status(200).json({ data: user });
+  res.status(200).json({ data: {
+      "id": user._id,
+      "firstName": user.firstName,
+      "lastName": user.lastName,
+      "slug": user.slug,
+      "email": user.email,
+      "phone": user.phone,
+      "roles": user.roles,
+    } });
 });
 
 // @ implement authentication
