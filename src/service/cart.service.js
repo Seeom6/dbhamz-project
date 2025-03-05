@@ -1,8 +1,8 @@
 import ProductModel from "../models/product.model.js";
 import {CartModel} from "../models/cart.model.js";
-import asyncHandler from "express-async-handler";
 import ApiError from "../lib/ApiError.js";
 import {CouponModel} from "../models/coupon.model.js";
+import  productService from "../service/product.service.js"
 
 const cartCalculator = async (cart, coupon) => {
     let total = 0;
@@ -19,6 +19,17 @@ const cartCalculator = async (cart, coupon) => {
         }
         cart.totalPriceAfterDiscount = (total - total * (coup.discount / 100)).toFixed(2);
     }
+}
+
+async function createCart(productsInfo, user) {
+    const items = await createCartItems(productsInfo.items);
+
+    const cart = await CartModel.create({
+        cartItems: items,
+        user: user._id,
+    });
+    await cartCalculator(cart, productsInfo.code);
+    return cart;
 }
 
 const addProductToCart = async (productInfo, user) => {
@@ -108,6 +119,19 @@ export const applyCoupon = async (couponData , userId , next)=>{
 return cart
 }
 
+async function createCartItems (productsInfo)  {
+    const items = await Promise.all(
+        productsInfo.map(async (productInfo) => {
+        const product = await productService.getProductById(productInfo.id)
+        return {
+            product: product._id,
+            price: product.price,
+            quantity: productInfo.quantity
+        };
+    }))
+    return items
+}
+
 export default {
   cartCalculator,
   addProductToCart,
@@ -115,4 +139,5 @@ export default {
   removeItemFromTheCart,
   updateItemQuantity,
   applyCoupon,
+    createCart
 };

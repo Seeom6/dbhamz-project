@@ -12,7 +12,6 @@ export const getCoupons = getAllItems(CouponModel)
 
 export const getOneItemCoupon = getOneItem(CouponModel)
 
-// export const updateCoupon = updateItem(CouponModel)
 export const updateCoupon = asyncHandler(async (req, res, next) => {
     const couponById = await CouponService.getCouponById(req.params.id)
     if (couponById.code !== req.body.code) {

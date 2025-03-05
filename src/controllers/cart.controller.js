@@ -13,6 +13,16 @@ export const addProductToCart = asyncHandler(async (req, res, next)=>{
   }
 })
 
+export const createCart = asyncHandler(async (req, res, next)=>{
+  try {
+    const cart = await CartService.createCart(req.body, req.user)
+    res.status(201).json({ data: cart })
+  }catch (error){
+    next(error)
+  }
+
+})
+
 export const getProductInCart = asyncHandler( async (req,res)=>{
   const cart = await CartService.getProductInCart(req.user._id)
   res.status(200).json({ numberOfItem: cart.cartItems.length, data: cart })
