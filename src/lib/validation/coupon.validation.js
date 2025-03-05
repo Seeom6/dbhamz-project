@@ -55,6 +55,7 @@ export const updateCouponValidation = [
             if(val < 1 || val > 100){
                 throw new ApiError("discount must be less than 100 and greater than 0", 400);
             }
+            return true;
         }),
     check("expired")
         .notEmpty()
