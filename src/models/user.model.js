@@ -66,6 +66,7 @@ userSchema.post("save", (doc) => {
   setImageUrl(doc);
 });
 
+
 const User = mongoose.model("User", userSchema);
 
 export default User;

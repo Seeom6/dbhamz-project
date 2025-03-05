@@ -1,4 +1,4 @@
-import { check, } from "express-validator";
+import { check, param, } from "express-validator";
 import validator from "./../../middleware/validator.middleware.js";
 import ApiError from "../ApiError.js";
 

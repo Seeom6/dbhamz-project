@@ -29,7 +29,7 @@ export const createCouponValidation = [
             if (!moment(value, "YYYY-MM-DD HH:mm:ss", true).isValid()) {
                 throw new ApiError("invalid Date");
             }const dateValue = moment(value, "YYYY-MM-DD HH:mm:ss").toDate();
-            if (dateValue < new Date()) {
+            if (dateValue < new Date.now()) {
                 throw new ApiError("date must be in future");
             }
 

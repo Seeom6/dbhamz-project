@@ -61,7 +61,7 @@ const getProductInCart = async (userId) => {
 export const removeItemFromTheCart = async (productId, userId) => {
   let cart = await CartModel.findOneAndUpdate(
     { user: userId },
-    { $pull: { cartItems: { product: productId } } },
+    { $pull: { cartItems: { _id: productId } } },
     { new: true }
   );
   cartCalculator(cart);
@@ -75,9 +75,9 @@ export const updateItemQuantity = async (productInfo, productId, userId) => {
     throw new ApiError("this item is not exists in cart");
   }
   const cartItemIndex = cart.cartItems.findIndex(
-    (item) => item.product.toString() === productId
+    (item) => item._id.toString() === productId
   );
-  cart.cartItems[cartItemIndex].quantity = productInfo.quantity;
+if(cartItemIndex > -1)  cart.cartItems[cartItemIndex].quantity = productInfo.quantity;
 
   await cartCalculator(cart);
   cart = await cart.save();

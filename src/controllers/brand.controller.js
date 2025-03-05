@@ -16,7 +16,6 @@ export const uploadBrandImage = uploadSingleImage("image");
 
 // # Resize Images
 export const resizeImage = asyncHandler(async (req, res, next) => {
-  console.log(req.body)
   const fileName = `brand-${uuidv4()}-${Date.now()}.jpeg`;
   if (req.file) {
     await sharp(req.file.buffer)

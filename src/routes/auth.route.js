@@ -1,5 +1,5 @@
 import express from "express";
-import { login, signup } from "../controllers/auth.controller.js";
+import { getMe, login, protect, signup } from "../controllers/auth.controller.js";
 import {
   loginValidator,
   signupValidator,
@@ -9,5 +9,6 @@ const Router = express.Router();
 
 Router.route("/signup").post(signupValidator, signup);
 Router.route("/login").post(loginValidator, login);
+Router.get("/getme" ,protect, getMe)
 
 export default Router;
