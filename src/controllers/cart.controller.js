@@ -2,6 +2,7 @@
 import asyncHandler from "express-async-handler";
 import CartService  from "../service/cart.service.js"
 import {CartModel} from "../models/cart.model.js";
+import { getOneItem } from "./general.controller.js";
 
 export const addProductToCart = asyncHandler(async (req, res, next)=>{
   try {
@@ -36,3 +37,6 @@ export const applyCouponToCart = asyncHandler(async ( req ,res)=>{
   const cart = await CartService.applyCoupon(req.body.coupon , req.user._id )
   res.status(200).json({cart})
 })
+
+
+export const getOneCart = getOneItem(CartModel)

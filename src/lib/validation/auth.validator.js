@@ -49,17 +49,13 @@ export const signupValidator = [
   .notEmpty()
   .withMessage("Phone number is required")
   .custom((value) => {
-    console.log(value)
-    // List of supported country codes
     const supportedCountries = ["SA", "AE", "OM", "KW", "QA"];
-
-    // Check if the phone number is valid for any of the supported countries
     const isValid = supportedCountries.some((country) =>
       isValidPhoneNumber(value, country)
     );
 
     if (!isValid) {
-      throw new Error("Phone number is not correct for SA, AE, OM, KW, or QA");
+      throw new Error("الرقم غير صحيح او هذا الرقم غير موجود");
     }
     return true;
   })

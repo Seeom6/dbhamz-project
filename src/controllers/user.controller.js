@@ -94,3 +94,4 @@ export const changeUserPassword = asyncHandler(async (req, res, next) => {
 // # DELETE    /app/users/:id
 // # Private
 export const deleteUser = deleteItem(User);
+
