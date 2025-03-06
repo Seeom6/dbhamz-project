@@ -19,12 +19,12 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       minlength: 10,
-      maxlength: 2000,
+      maxlength : 3000
     },
 
     quantity: {
       type: Number,
-      required: true,
+      default : 0
     },
 
     sold: {

@@ -22,19 +22,9 @@ export const createProductValidator = [
     .notEmpty()
     .withMessage("description of title is required")
     .isLength({ min: 10 })
-    .withMessage("description must be at least 10 chars")
-    .isLength({ max: 700 })
-    .withMessage("Too long description content"),
-
-  check("quantity")
-    .notEmpty()
-    .withMessage("quantity of product is required")
-    .isNumeric()
-    .withMessage("quantity of product must be number")
-    .custom((value) => {
-      if (value <= 0) throw new ApiError("quantity must be greater than 0");
-      return true;
-    }),
+    .withMessage("حجم الوصف يجب ان يكون اكبر من 10 احرف")
+    .isLength({ max: 3000 })
+    .withMessage("حجم الوصف يجب ان يكون اقل من 3000 حرف"),
 
   check("sold")
     .optional()
@@ -53,8 +43,9 @@ export const createProductValidator = [
     .withMessage("Price of product must be number")
     .toFloat()
     .custom((value, { req }) => {
-      if (value <= 0) {
-        throw new ApiError("price of product must be positive number", 400);
+      const sizeArray = [50, 75, 80, 90, 100, 120, 125, 150, 175, 200, 250]
+      if (!sizeArray.includes(value)) {
+        throw new ApiError("الرجاء اختيار حجم ضمن قائمة حجم العبوة", 400);
       }
       return true;
     }),
