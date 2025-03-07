@@ -29,7 +29,7 @@ async function createZinaPayment(amount, currencyCode, referenceId){
                     // customer_email: userEmail, // Customer's email
                     success_url: process.env.SUCCESS_URL ? process.env.SUCCESS_URL : "url",
                     cancel_url:process.env.CANSLE_URL ? process.env.CANSLE_URL : "url",
-                    test: true,
+                    // test: true,
                     reference_id: referenceId, // Unique reference ID for the transaction
                 },
                 {
