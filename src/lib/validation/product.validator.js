@@ -5,12 +5,26 @@ import slugify from "slugify";
 import ApiError from "../ApiError.js";
 import Product from "../../models/product.model.js";
 
+const packageSizes = [
+  "50",
+  "75",
+  "80",
+  "90",
+  "100",
+  "120",
+  "125",
+  "150",
+  "175",
+  "200",
+  "250",
+];
+
 export const createProductValidator = [
   check("name")
     .isLength({ min: 3 })
-    .withMessage("product title must be at least 3 chars")
+    .withMessage("أسم المنتج يجب ان يكون على الأقل 3 احرف")
     .isLength({ max: 100 })
-    .withMessage("Too long product title")
+    .withMessage("أسم المنتج كبير جداً")
     .notEmpty()
     .withMessage("product title is required")
     .custom((val, { req }) => {
@@ -41,14 +55,7 @@ export const createProductValidator = [
     .withMessage("Price of product is required")
     .isFloat()
     .withMessage("Price of product must be number")
-    .toFloat()
-    .custom((value, { req }) => {
-      const sizeArray = [50, 75, 80, 90, 100, 120, 125, 150, 175, 200, 250]
-      if (!sizeArray.includes(value)) {
-        throw new ApiError("الرجاء اختيار حجم ضمن قائمة حجم العبوة", 400);
-      }
-      return true;
-    }),
+    .toFloat(),
 
   check("priceAfterDiscount")
     .optional()
@@ -92,18 +99,7 @@ export const createProductValidator = [
 
   check("packageSize")
     .notEmpty()
-    .withMessage("Case size is required")
-    .isNumeric()
-    .withMessage("packageSize must me number")
-    .custom(async (val) => {
-      const number = parseFloat(val);
-      if (number === 25 || number === 50 || number === 100) {
-        return false;
-      } else {
-        throw new ApiError("Case size must be 25 or 50 or 100");
-      }
-    }),
-
+    .withMessage("Case size is required"),
   validator,
 ];
 
@@ -141,21 +137,15 @@ export const updateProductValidator = [
       if (val) req.body.slug = slugify(val);
       return true;
     }),
-  check("description")
-    .optional()
+    check("description")
+    .notEmpty()
+    .withMessage("description of title is required")
     .isLength({ min: 10 })
-    .withMessage("description must be at least 10 chars")
-    .isLength({ max: 700 })
-    .withMessage("Too long description content"),
+    .withMessage("حجم الوصف يجب ان يكون اكبر من 10 احرف")
+    .isLength({ max: 3000 })
+    .withMessage("حجم الوصف يجب ان يكون اقل من 3000 حرف"),
 
-  check("quantity")
-    .optional()
-    .isNumeric()
-    .withMessage("quantity of product must be number")
-    .custom((value) => {
-      if (value <= 0) throw new ApiError("quantity must be greater than 0");
-      return true;
-    }),
+ 
   check("sold")
     .optional()
     .isNumeric()
@@ -239,14 +229,17 @@ export const updateProductValidator = [
       return true;
     }),
 
-  check("packageSize")
+check("packageSize")
     .optional()
-    .isNumeric()
-    .withMessage("packageSize must me number")
-    .isArray()
-    .withMessage("package size must be an Array")
-,
+    .custom((value) => {
+      if (value.length > 2) {
+        if (!value.every((size) => packageSizes.includes(size))) {
+          throw new Error("Package size contains invalid values");
+        }
+      }
 
+      return true;
+    }),
   validator,
 ];
 

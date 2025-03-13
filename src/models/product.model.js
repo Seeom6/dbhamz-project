@@ -9,6 +9,12 @@ const productSchema = new mongoose.Schema(
       minlength: 3,
       maxlength: 100,
     },
+    englishName: {
+      type: String,
+      trim: true,
+      minlength: 3,
+      maxlength: 100,
+    },
 
     slug: {
       type: String,
@@ -26,7 +32,10 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default : 0
     },
-
+    isLike:{
+      type: Boolean,
+      default: false
+    },
     sold: {
       type: Number,
       default: 0,
@@ -66,7 +75,7 @@ const productSchema = new mongoose.Schema(
     packageSize: {
       type: [String],
       required: true,
-      enum: [50, 75, 80, 90, 100, 120, 125, 150, 175, 200, 250],
+      enum: ['50', '75', '70' ,'60','80', '90', '100', '120', '125', '150', '175', '200', '250' , '500'],
     },
   },
   { timestamps: true }
