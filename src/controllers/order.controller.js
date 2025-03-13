@@ -1,10 +1,16 @@
 import asyncHandler from "express-async-handler";
-import axios from "axios";
 import { CartModel } from "./../models/cart.model.js";
 import ApiError from "./../lib/ApiError.js";
 import Order from "./../models/order.model.js";
 import { getAllItems, getOneItem } from "./general.controller.js";
+import {UserService} from "../service/user.service.js";
+import axios from "axios";
+import {OrderService} from "../service/order.service.js";
+import {ZiinaPaymentStatus as ZinaPaymentStatus, ZiinaPaymentStatus} from "../service/payments/ziina/ziina.types.js";
+import {ZinnaService} from "../service/payments/ziina/zinna.service.js";
 
+
+<<<<<<< HEAD
 export const createZiinaPayment = async (amount, currencyCode, referenceId) => {
   try {
     const response = await axios.post(
@@ -29,32 +35,36 @@ export const createZiinaPayment = async (amount, currencyCode, referenceId) => {
     throw new Error("Failed to create Ziina payment");
   }
 };
+=======
+>>>>>>> 4d095729625eebbe768adb66c39e6a9dcd350368
 
 export const checkOutSession = asyncHandler(async (req, res, next) => {
   const taxPrice = 0;
   const shippingPrice = 0;
   // Fetch the cart
+
   const cart = await CartModel.findById(req.params.cartId);
   if (!cart) {
     return next(new ApiError("ليس لديك سلة", 404));
   }
 
-  // Calculate the total order price
   const cartPrice = cart.totalPriceAfterDiscount
     ? cart.totalPriceAfterDiscount
     : cart.totalPrice;
   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
-
-  // Create a payment with Ziina
+  const user = await UserService.getUserById(req.user.id)
   try {
-    const payment = await createZiinaPayment(
+    const payment = await ZinnaService.createZinaPayment(
       totalOrderPrice * 100,
       "AED",
+<<<<<<< HEAD
         // "alslamat407@gmail.com",
       req.user._id
+=======
+        cart._id
+>>>>>>> 4d095729625eebbe768adb66c39e6a9dcd350368
     );
-
-    // Create the order in the database
+    console.log(payment);
     const order = await Order.create({
       user: req.user._id,
       cartItems: cart.cartItems,
@@ -63,10 +73,11 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
       totalOrderPrice,
       paymentMethod: "card",
       isPaid: false,
+      paymentStatus: payment.status,
+      paymentId: payment.id,
       reference_id: payment.reference_id,
     });
 
-    // Return the payment URL (session URI) to the frontend
     res.status(200).json({
       success: true,
       message: "تم إنشاء الطلب بنجاح",
@@ -74,7 +85,7 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
       order,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error.message);
     return next(new ApiError("فشل في إنشاء الدفع مع Ziina", 500));
   }
 });
@@ -84,6 +95,43 @@ export const filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
     next()
 })
 
+export const getPaymentStatus = asyncHandler(async (req, res, next) => {
+  try {
+    const payment = await axios.get(
+        `${process.env.ZIINA_API_URL}/payment_intent/${req.params.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.ZIINA_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+    )
+    res.json({payment: payment.data});
+  }catch (error) {
+    console.log(error.message);
+    next(error)
+  }
+
+})
+
 export const getAllOrders = getAllItems(Order);
 
-export const getOneOrder = getOneItem(Order);
+export const getMyOrders = asyncHandler(async (req, res, next) => {
+  const user = await UserService.getUserById(req.user.id);
+  const order = await OrderService.getMyOrders(user._id);
+  res.status(200).json({
+    data: order,
+  })
+})
+
+export const getOrder = asyncHandler(async (req, res, next) => {
+  const order = await OrderService.getOrderById(req.params.id)
+  if(![ZiinaPaymentStatus.canceled, ZiinaPaymentStatus.canceled, ZiinaPaymentStatus.failed].includes(order.status)){
+    const payment = await ZinnaService.getPayment(order.paymentId)
+    order.status = payment.status;
+    await order.save()
+  }
+  res.json({
+    data: order
+  })
+})
