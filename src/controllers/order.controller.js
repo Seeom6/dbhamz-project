@@ -20,7 +20,7 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
   // Fetch the cart
   let items = [];
   await Promise.all(
-      req.body.itmes.map(async (productInfo) => {
+      req.body.items.map(async (productInfo) => {
         const product = await productService.getProductById(productInfo.id)
         items.push({
           product: product._id,
@@ -36,7 +36,7 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
     const paymentReponse = await MyFatooraService.getMyFatooraLink(totalOrderPrice, user)
     const order = await Order.create({
       user: req.user._id,
-      cartItems: cart.cartItems,
+      cartItems: items,
       taxPrice,
       shippingData: 0,
       totalOrderPrice,
@@ -55,7 +55,7 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
     });
   } catch (error) {
     console.log(error.message);
-    return next(new ApiError("فشل في إنشاء الدفع مع Ziina", 500));
+    return next(new ApiError("فشل في إنشاء الدفع مع myFatoora", 500));
   }
 });
 
@@ -66,16 +66,9 @@ export const filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
 
 export const getPaymentStatus = asyncHandler(async (req, res, next) => {
   try {
-    const payment = await axios.get(
-      `${process.env.ZIINA_API_URL}/payment_intent/${req.params.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.ZIINA_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    res.json({ payment: payment.data });
+    const order = await OrderService.getOrderById(req.params.id)
+    const payment = await MyFatooraService.getPaymetStatus(order.paymentId, "InvoiceId")
+    res.json({ payment: payment });
   } catch (error) {
     console.log(error.message);
     next(error);

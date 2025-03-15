@@ -1,6 +1,8 @@
 import axios from "axios";
-import {EnvVar} from "../../../config/env/env-var.js";
 import ApiError from "../../../lib/ApiError.js";
+import {EnvVar} from "../../../config/env/env-var.js";
+import {MyFatooraVersion, MyFatootaEndPoints} from "./myFatoora.type.js";
+import * as url from "node:url";
 
 const NotificationOptions = {
     link: "LNK",
@@ -11,13 +13,13 @@ const NotificationOptions = {
 
 export async function getMyFatooraLink(totalPrice ,user){
     try {
-        const url = `${EnvVar.myFatoora_base_url}/v2/SendPayment`
+        const url = `${EnvVar.myFatoora_base_url}/${MyFatooraVersion}/${MyFatootaEndPoints.sendPayment}`
         const body = {
             NotificationOption: NotificationOptions.link,
-            CustomerName: user.name,
+            CustomerName: user.firstName,
             InvoiceValue: totalPrice,
-            // CallBackUrl: EnvVar.myFatoora_call_backu_rl,
-            // ErrorUrl: EnvVar.myFatoora_error_url,
+            CallBackUrl: EnvVar.myFatoora_call_backu_rl,
+            ErrorUrl: EnvVar.myFatoora_error_url,
             // Language: 'ar',
             // DisplayCurrencyIso: 'KWD',
             // MobileCountryCode: '+965',
@@ -43,7 +45,9 @@ export async function getMyFatooraLink(totalPrice ,user){
             Authorization: 'Bearer '+ EnvVar.myFatoora_api_key,
             'Content-Type': 'application/json'
         }
-        const response = await axios.post(url,body,headers)
+        const response = await axios.post(url,body,{
+            headers
+        })
         return response.data;
     }catch (e) {
         console.log(e.message)
@@ -52,6 +56,26 @@ export async function getMyFatooraLink(totalPrice ,user){
 
 }
 
+async function getPaymetStatus(id, key){
+    const headers = {
+        Accept: 'application/json',
+        Authorization: 'Bearer '+ EnvVar.myFatoora_api_key,
+        'Content-Type': 'application/json'
+    }
+    const  body = {
+        Key : id,
+        KeyType : key
+    }
+    const url = `${EnvVar.myFatoora_base_url}/${MyFatooraVersion}/${MyFatootaEndPoints.getPaymentStatus}`
+    const bodyString = JSON.stringify(body)
+    const response = await axios.post(url,bodyString,{
+        headers
+    })
+    console.log(response.data.Data.InvoiceTransactions[0].TransactionStatus)
+    return response.data;
+}
+
 export const MyFatooraService = {
     getMyFatooraLink,
+    getPaymetStatus
 }
