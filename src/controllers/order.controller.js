@@ -66,7 +66,6 @@ export const checkOutSessionId = asyncHandler(async (req, res, next) => {
     const paymentReponse = await MyFatooraService.getMyFatooraLink(order.totalOrderPrice, user)
     order.paymentStatus = "Pending"
     order.shippingData = shippingData
-    console.log(paymentReponse.Data)
     order.paymentId = `${paymentReponse.Data.InvoiceId}`
     await order.save()
     res.status(200).json({
