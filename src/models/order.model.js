@@ -32,6 +32,10 @@ const orderSchema = new mongoose.Schema({
   totalOrderPrice:{
     type: Number
   },
+  totalOrderPriceAfterDiscount: {
+    type: Number,
+    default: null
+  },
   paymentMethod : {
     type: String,
     default: "card"

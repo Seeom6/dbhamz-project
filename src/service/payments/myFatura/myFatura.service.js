@@ -18,12 +18,12 @@ export async function getMyFatooraLink(totalPrice ,user){
             NotificationOption: NotificationOptions.link,
             CustomerName: user.firstName,
             InvoiceValue: totalPrice,
-            CallBackUrl: EnvVar.myFatoora_call_backu_rl,
-            ErrorUrl: EnvVar.myFatoora_error_url,
+            // CallBackUrl: EnvVar.myFatoora_call_backu_rl,
+            // ErrorUrl: EnvVar.myFatoora_error_url,
             // Language: 'ar',
             // DisplayCurrencyIso: 'KWD',
             // MobileCountryCode: '+965',
-            // CustomerMobile: '12345678',
+            // CustomerMobile: user.phone,
             // CustomerEmail: 'xx@yy.com',
             // CustomerReference: 'ref 1',
             // CustomerCivilId: 12345678,
@@ -41,16 +41,17 @@ export async function getMyFatooraLink(totalPrice ,user){
             // ]
         }
         const headers = {
-            Accept: 'application/json',
-            Authorization: 'Bearer '+ EnvVar.myFatoora_api_key,
+            'Accept': 'application/json',
+            'Authorization': 'Bearer '+ EnvVar.myFatoora_api_key,
             'Content-Type': 'application/json'
         }
-        const response = await axios.post(url,body,{
+        const stringBody = JSON.stringify(body)
+        const response = await axios.post(url,stringBody,{
             headers
         })
         return response.data;
     }catch (e) {
-        console.log(e.message)
+        // console.log(e)
         throw new ApiError("myFatoora payment error please try again ", 400)
     }
 
