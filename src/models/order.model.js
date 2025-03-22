@@ -53,6 +53,40 @@ const orderSchema = new mongoose.Schema({
     default: false
   },
   deliveredAt: Date,
+  shippingData: {
+    firstName: {
+      type: String,
+      defualt: null,
+    },
+    lastName: {
+      type: String,
+      defualt: null,
+    },
+    phone: {
+      type: String,
+      defualt: null,
+    },
+    city: {
+      type: String,
+      defualt: null,
+    },
+    country: {
+      type: String,
+      defualt: null,
+    },
+    street:  {
+      type: String,
+      defualt: null,
+    },
+    area: {
+      type: String,
+      defualt: null,
+    },
+    note: {
+      type: String,
+      defualt: null,
+    },
+  }
 }, {timestamps : true});
 
 

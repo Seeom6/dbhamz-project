@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import ApiError from "./../lib/ApiError.js";
 import Order from "./../models/order.model.js";
-import { getAllItems, getOneItem } from "./general.controller.js";
+import { getAllItems } from "./general.controller.js";
 import { UserService } from "../service/user.service.js";
 import { OrderService } from "../service/order.service.js";
 import { CouponService } from "../service/coupon.service.js";
@@ -59,14 +59,16 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
 export const checkOutSessionId = asyncHandler(async (req, res, next) => {
 
   // Fetch the cart
+  const { shippingData } = req.body
   const order = await OrderService.getOrderById(req.params.id)
-
   const user = await UserService.getUserById(req.user.id);
   try {
     const paymentReponse = await MyFatooraService.getMyFatooraLink(order.totalOrderPrice, user)
     order.paymentStatus = "Pending"
+    order.shippingData = shippingData
+    console.log(paymentReponse.Data)
+    order.paymentId = `${paymentReponse.Data.InvoiceId}`
     await order.save()
-
     res.status(200).json({
       success: true,
       message: "تم إنشاء الطلب بنجاح",
