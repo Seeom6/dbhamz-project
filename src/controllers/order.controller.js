@@ -51,7 +51,6 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
       paymentUrl: paymentReponse.Data.InvoiceURL,
     });
   } catch (error) {
-    console.log(error.message);
     return next(new ApiError("فشل في إنشاء الدفع مع myFatoora", 500));
   }
 });
@@ -62,8 +61,10 @@ export const checkOutSessionId = asyncHandler(async (req, res, next) => {
   const { shippingData } = req.body
   const order = await OrderService.getOrderById(req.params.id)
   const user = await UserService.getUserById(req.user.id);
+
+  const finalePrice = order.totalOrderPriceAfterDiscount ? order.totalOrderPriceAfterDiscount : order.totalOrderPrice
   try {
-    const paymentReponse = await MyFatooraService.getMyFatooraLink(order.totalOrderPrice, user)
+    const paymentReponse = await MyFatooraService.getMyFatooraLink(finalePrice, { user, shippingData})
     order.paymentStatus = "Pending"
     order.shippingData = shippingData
     order.paymentId = `${paymentReponse.Data.InvoiceId}`
@@ -74,7 +75,6 @@ export const checkOutSessionId = asyncHandler(async (req, res, next) => {
       paymentUrl: paymentReponse.Data.InvoiceURL,
     });
   } catch (error) {
-    console.log(error.message);
     return next(new ApiError("فشل في إنشاء الدفع مع myFatoora", 500));
   }
 });
@@ -85,7 +85,7 @@ export const createOder = asyncHandler(async (req, res, next) => {
   const shippingPrice = 0;
   await Promise.all(
       req.body.items.map(async (productInfo) => {
-        const product = await productService.getProductById(productInfo.id)
+        const product = await productService.getProductById(productInfo._id)
         items.push({
           product: product._id,
           price: product.price,
@@ -126,7 +126,6 @@ export const getPaymentStatus = asyncHandler(async (req, res, next) => {
     const payment = await MyFatooraService.getPaymetStatus(order.paymentId, "InvoiceId")
     res.json({ payment: payment });
   } catch (error) {
-    console.log(error.message);
     next(error);
   }
 });
@@ -144,10 +143,10 @@ export const getMyOrders = asyncHandler(async (req, res, next) => {
 export const getOrder = asyncHandler(async (req, res, next) => {
   const order = await OrderService.getOrderById(req.params.id);
   if (
-    order.status === "Pinding"
+    order.status === "Pending"
   ) {
     const payment = await MyFatooraService.getPaymetStatus(order.paymentId);
-    order.paymentStatus = payment.Data.InvoiceTransactions[1]?.TransactionStatus ?? "Pinding";
+    order.paymentStatus = payment.Data.InvoiceTransactions[1]?.TransactionStatus ?? "Pending";
     await order.save();
   }
   res.json({
@@ -158,10 +157,7 @@ export const getOrder = asyncHandler(async (req, res, next) => {
 
 export const weebHook = asyncHandler(async (req, res, next) => {
   const { Data } = req.body;
-  console.log("MyFatoorah-Signature", req.headers["MyFatoorah-Signature"])
-  console.log(req.body);
   const payment = await OrderService.getOrderByPaymentId(Data.InvoiceId)
-  console.log("payment", payment )
   payment.paymentStatus = Data.TransactionStatus
   await payment.save()
   res.json({
@@ -185,6 +181,6 @@ export const applyingCoupon = asyncHandler(async (req, res, next) => {
   await order.save()
   res.json({
     totalPriceAfterDiscount: order.totalOrderPriceAfterDiscount,
-    totalPirce : order.totalOrderPrice,
+    totalPrice : order.totalOrderPrice,
   });
 })

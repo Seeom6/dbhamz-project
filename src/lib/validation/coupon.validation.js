@@ -18,9 +18,9 @@ export const createCouponValidation = [
     .isString()
     .withMessage("coupon type must be a string")
     .custom((val) => {
-      if (![CouponType.delevarey, CouponType.percentage].includes(val)) {
+      if (![CouponType.delivery, CouponType.percentage].includes(val)) {
         throw new ApiError(
-          `type coupon must be a ${CouponType.delevarey} or ${CouponType.percentage}`,
+          `type coupon must be a ${CouponType.delivery} or ${CouponType.percentage}`,
           400
         );
       }

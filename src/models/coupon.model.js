@@ -18,7 +18,7 @@ const couponSchema = new Schema({
     type: {
         type: String,
         required: true,
-        enum: ["percentage","delevarey"]
+        enum: ["percentage","delivery"]
     }
 },{timeseries: true})
 
@@ -26,5 +26,5 @@ export const CouponModel = model("Coupon", couponSchema)
 
 export const CouponType = {
     percentage: "percentage",
-    delevarey: "delevarey"
+    delivery: "delivery"
 }

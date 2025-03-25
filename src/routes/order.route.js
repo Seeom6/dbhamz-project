@@ -20,13 +20,13 @@ Router.post("/weeb-hook/fatoorah", weebHook)
 
 Router.route("/").get(protect , allowedTo("user","admin") , filterOrderForLoggedUser ,getAllOrders)
 Router.get("/my-order",protect ,allowedTo("user"), getMyOrders)
-Router.post("/apply-copoun/:id", applyingCoupon)
+Router.post("/apply-coupon/:id", applyingCoupon)
 
 
 Router.post("/checkout-payments", protect,allowedTo("user"), checkOutSession)
 Router.post("/checkout-payments/:id", protect,allowedTo("user"), checkOutSessionId)
 
-Router.post("", protect,allowedTo("user"), createOder)
+Router.post("/", protect,allowedTo("user"), createOder)
 Router.get("/check-payment-status/:id", getPaymentStatus)
 Router.get("/:id", protect, getOrder)
 

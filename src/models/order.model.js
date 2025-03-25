@@ -56,35 +56,35 @@ const orderSchema = new mongoose.Schema({
   shippingData: {
     firstName: {
       type: String,
-      defualt: null,
+      default: null,
     },
     lastName: {
       type: String,
-      defualt: null,
+      default: null,
     },
     phone: {
       type: String,
-      defualt: null,
+      default: null,
     },
     city: {
       type: String,
-      defualt: null,
+      default: null,
     },
     country: {
       type: String,
-      defualt: null,
+      default: null,
     },
     street:  {
       type: String,
-      defualt: null,
+      default: null,
     },
     area: {
       type: String,
-      defualt: null,
+      default: null,
     },
     note: {
       type: String,
-      defualt: null,
+      default: null,
     },
   }
 }, {timestamps : true});
