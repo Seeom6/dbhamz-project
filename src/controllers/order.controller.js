@@ -9,12 +9,26 @@ import { CouponType } from "../models/coupon.model.js"
 import { MyFatooraService} from "../service/payments/myFatura/myFatura.service.js";
 import productService from "../service/product.service.js";
 
+
+import crypto from 'crypto';
+
+const verifySignature = (receivedSig, payload) => {
+  const secret = process.env.MYFATOORA_WEBHOOK_SECRET;
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(JSON.stringify(payload));
+  const expectedSig = hmac.digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(receivedSig),
+    Buffer.from(expectedSig)
+  );
+};
+
+
 const taxPrice = 0;
 const shippingPrice = 0;
 
 export const checkOutSession = asyncHandler(async (req, res, next) => {
 
-  // Fetch the cart
   let items = [];
   await Promise.all(
       req.body.items.map(async (productInfo) => {
@@ -54,66 +68,113 @@ export const checkOutSession = asyncHandler(async (req, res, next) => {
     return next(new ApiError("فشل في إنشاء الدفع مع myFatoora", 500));
   }
 });
-
 export const checkOutSessionId = asyncHandler(async (req, res, next) => {
-
-  // Fetch the cart
-  const { shippingData } = req.body
-  const order = await OrderService.getOrderById(req.params.id)
-  const user = await UserService.getUserById(req.user.id);
-
-  const finalePrice = order.totalOrderPriceAfterDiscount ? order.totalOrderPriceAfterDiscount : order.totalOrderPrice
+  const { shippingData } = req.body;
+  
   try {
-    const paymentReponse = await MyFatooraService.getMyFatooraLink(finalePrice, { user, shippingData})
-    order.paymentStatus = "Pending"
-    order.shippingData = shippingData
-    order.paymentId = `${paymentReponse.Data.InvoiceId}`
-    await order.save()
+    const order = await OrderService.getOrderById(req.params.id);
+    const user = await UserService.getUserById(req.user.id);
+
+    await UserService.updateUser(req.user.id, {
+      address: {
+        city: shippingData.city,
+        country: shippingData.country,
+        street: shippingData.street,
+        area: shippingData.area,
+      },
+    });
+    const finalPrice = Math.round(
+      (order.totalOrderPriceAfterDiscount || order.totalOrderPrice) + 
+      order.shippingPrice
+    );
+    const paymentResponse = await MyFatooraService.getMyFatooraLink(finalPrice, { 
+      user, 
+      shippingData,
+      orderId: order._id
+    });
+
+    await OrderService.updateOrder(order._id, {
+      paymentStatus: "Pending",
+      shippingData,
+      paymentId: paymentResponse.Data.InvoiceId,
+      paymentMethod: "card"
+    });
+
     res.status(200).json({
       success: true,
-      message: "تم إنشاء الطلب بنجاح",
-      paymentUrl: paymentReponse.Data.InvoiceURL,
+      message: "تم تحويلك إلى صفحة الدفع الآمن",
+      paymentUrl: paymentResponse.Data.InvoiceURL,
+      invoiceId: paymentResponse.Data.InvoiceId
     });
+
   } catch (error) {
-    return next(new ApiError("فشل في إنشاء الدفع مع myFatoora", 500));
+    return next(new ApiError("تعذر الاتصال بخدمة الدفع، يرجى المحاولة لاحقاً", 503));
   }
 });
-
-export const createOder = asyncHandler(async (req, res, next) => {
+export const createOrder = asyncHandler(async (req, res, next) => {
   let items = [];
   const taxPrice = 0;
-  const shippingPrice = 0;
+  
   await Promise.all(
-      req.body.items.map(async (productInfo) => {
-        const product = await productService.getProductById(productInfo._id)
-        items.push({
-          product: product._id,
-          price: product.price,
-          quantity: productInfo.quantity
-        });
-      }))
+    req.body.items.map(async (productInfo) => {
+      const product = await productService.getProductById(productInfo._id);
+      items.push({
+        product: product._id,
+        price: product.priceAfterDiscount ?product.priceAfterDiscount: product.price ,
+        quantity: productInfo.quantity,
+        productImage: product.imageCover, 
+        productName: product.name, 
+        productSlug: product.slug 
+      });
+    })
+  );
 
+  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
+
+  let shippingPrice = 0;
+  if (totalItems <= 1) {
+    shippingPrice = 4; 
+  } else if (totalItems <= 4) {
+    shippingPrice = 6; 
+  } else if (totalItems <= 6) {
+    shippingPrice = 8;
+  } else if (totalItems <= 8) {
+    shippingPrice = 10; 
+  } else if (totalItems <= 0) {
+    shippingPrice = 0; 
+  } else {
+    shippingPrice = 10; 
+  }
 
   const totalPrice = items.reduce((total, item) => total + (item.price * item.quantity), 0);
   const totalOrderPrice = totalPrice + taxPrice + shippingPrice;
+
   const order = await Order.create({
     user: req.user._id,
     cartItems: items,
     taxPrice,
-    shippingData: 0,
+    shippingPrice,
     totalOrderPrice,
     paymentMethod: "card",
     isPaid: false,
     paymentStatus: "INIT",
     paymentId: null,
     reference_id: "referance",
+    totalItems,
   });
+
   res.status(200).json({
     success: true,
     message: "تم انشاء الطلب بنجاح",
     orderId: order._id,
+    shippingPrice,
+    totalItems,
+    cartItems: order.cartItems.map(item => ({
+      ...item.toObject(),
+      productImage: item.productImage 
+    }))
   });
-})
+});
 
 export const filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
   if (req.user.roles === "user") req.body.filterObj = { user: req.user._id };
@@ -154,16 +215,45 @@ export const getOrder = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const webHook = async (req, res) => {
+  try {
+    const signature = req.headers['x-fatoorah-signature'];
+    const payload = req.body;
 
-export const weebHook = asyncHandler(async (req, res, next) => {
-  const { Data } = req.body;
-  const payment = await OrderService.getOrderByPaymentId(Data.InvoiceId)
-  payment.paymentStatus = Data.TransactionStatus
-  await payment.save()
-  res.json({
+    if (!verifySignature(signature, payload)) {
+      return res.status(401).send('Invalid signature');
+    }
 
-  }) ;
-})
+    const orderId = payload.UserDefinedField;
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+
+    switch (payload.InvoiceStatus) {
+      case 'Paid':
+        order.isPaid = true;
+        order.paidAt = new Date();
+        order.paymentStatus = 'paid';
+        break;
+      case 'Failed':
+        order.paymentStatus = 'failed';
+        break;
+      case 'Expired':
+        order.paymentStatus = 'expired';
+        break;
+    }
+
+    await order.save();
+    res.status(200).send('Webhook processed');
+  } catch (err) {
+    res.status(500).send('Webhook processing failed');
+  }
+};
+
+
+
 
 export const applyingCoupon = asyncHandler(async (req, res, next) => {
   const order = await OrderService.getOrderById(req.params.id)

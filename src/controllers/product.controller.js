@@ -18,7 +18,6 @@ export const uploadProductImages = uploadMixImages([
   { name: "images", maxCount: 5 },
 ]);
 
-// # Resize Images
 export const resizeProductImage = asyncHandler(async (req, res, next) => {
   if (req.files.imageCover) {
     const imageCoverFileName = `product-${uuidv4()}-${Date.now()}-cover.jpeg`;

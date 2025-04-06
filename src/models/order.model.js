@@ -13,13 +13,18 @@ const orderSchema = new mongoose.Schema({
         ref: "Product",
       },
       price: Number,
-      quantity: {
-        type: Number,
-      },
+      quantity: Number,
+      productImage: String, // Add this field
+      productName: String, // Optional: for easier reference
     }
   ],
   paymentId: {
     type: String,
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed', 'expired'],
+    default: 'pending'
   },
   taxPrice : {
     type: Number,
@@ -85,6 +90,10 @@ const orderSchema = new mongoose.Schema({
     note: {
       type: String,
       default: null,
+    },
+    paymentGateway: {
+      type: String,
+      default: 'myfatoorah'
     },
   }
 }, {timestamps : true});
